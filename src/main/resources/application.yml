@@ -1,0 +1,24 @@
+server:
+  port: 8091
+spring:
+  config:
+    activate:
+      on-profile: local,dev,prod
+  application:
+    name: search-service
+  # config service settings
+  cloud:
+    config:
+      name: search-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, refresh, busrefresh, circuitbreakers
+  health:
+    circuitbreakers:
+      enabled: true
+feign:
+  circuitbreaker:
+    enabled: true
