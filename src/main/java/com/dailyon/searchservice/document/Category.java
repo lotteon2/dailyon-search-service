@@ -14,5 +14,6 @@ public class Category extends BaseEntity {
 
   private Long id;
   private String name;
+  private Boolean isLeaf;
   private Boolean isDeleted;
 }

@@ -21,6 +21,7 @@ public class Product extends BaseEntity {
   private List<String> describeImgUrls;
   private Integer price;
   private String gender;
+  private Brand brand;
   private List<Category> categories;
   private List<ProductSizeAndStock> sizeAndStocks;
   private ProductAggregate aggregate;
