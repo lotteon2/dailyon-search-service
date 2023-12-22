@@ -36,13 +36,13 @@ spec:
               memory: "512Mi"
               cpu: "1000m"
           ports:
-            - containerPort: 8087
+            - containerPort: 8091
           imagePullPolicy: IfNotPresent
           # 애플리케이션이 시작된 뒤 초기화 작업이 마무리되어 준비되었는지 검사
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8087
+              port: 8091
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 2
@@ -50,48 +50,10 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8087
+              port: 8091
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 2
-        - name: mysql
-          image: mysql:8.0.34
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "500m"
-            limits:
-              memory: "512Mi"
-              cpu: "1000m"
-          ports:
-            - containerPort: 3306
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: "11111111"
-            - name: MYSQL_DATABASE
-              value: review-service
-            - name: LC_ALL
-              value: C.UTF-8
-          volumeMounts:
-            - name: mysql-config
-              mountPath: /etc/mysql/conf.d
-          imagePullPolicy: IfNotPresent
-          # 애플리케이션이 시작된 뒤 초기화 작업이 마무리되어 준비되었는지 검사
-          readinessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 20
-            periodSeconds: 20
-          # 애플리케이션이 정상 상태를 유지하고 있는지 지속해서 검사
-          livenessProbe:
-            tcpSocket:
-              port: 3306
-            initialDelaySeconds: 20
-            periodSeconds: 20
-      volumes:
-        - name: mysql-config
-          configMap:
-            name: mysql-config
       restartPolicy: Always
       affinity:
         nodeAffinity:
