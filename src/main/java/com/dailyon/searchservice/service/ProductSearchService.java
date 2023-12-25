@@ -5,8 +5,13 @@ import com.dailyon.searchservice.dto.response.ProductSearchPageResponse;
 import com.dailyon.searchservice.dto.response.ProductSearchResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,8 +66,22 @@ public class ProductSearchService {
                             .order(SortOrder.fromString(order.getDirection().name())))
                     .sort(SortBuilders.fieldSort("_score").order(SortOrder.fromString("desc"))));
 
-    // TODO: Datetime 일 때 Datetime 형식으로 넣기
-    if (searchAfter != null) sourceBuilder.searchAfter(searchAfter);
+    if (searchAfter != null) {
+      AtomicReference<String> sortProperty = new AtomicReference<>();
+      pageable.getSort().forEach(order -> sortProperty.set(order.getProperty()));
+
+      if(sortProperty.get().equals("createdAt") || sortProperty.get().equals("updatedAt")) {
+        Long timestamp = Long.parseLong(searchAfter[0].toString());
+
+        LocalDateTime dateTime = Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.UTC).toLocalDateTime();
+
+        String formattedDateTime = dateTime.format(DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss"));
+
+        searchAfter = new Object[]{formattedDateTime, searchAfter[1]};
+      }
+
+      sourceBuilder.searchAfter(searchAfter);
+    }
 
     SearchResponse searchResponse = search(sourceBuilder);
 
@@ -71,7 +90,7 @@ public class ProductSearchService {
             .map(
                 hit -> {
                   Product product = objectMapper.convertValue(hit.getSourceAsMap(), Product.class);
-                  // TODO: Datetime 일 때 Datetime 형식으로 가져오기
+
                   Object[] sortValues = hit.getSortValues();
                   return ProductSearchResponse.fromDocument(product, sortValues);
                 })
